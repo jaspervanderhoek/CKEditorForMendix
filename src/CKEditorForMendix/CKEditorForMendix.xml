@@ -198,5 +198,10 @@
 			<category>Count</category>
 			<description>If the Count plugin is enabled, specifiy the max amount of characters (including HTML). If you set this to 0, it will be unlimited.</description>
 		</property>
+        <property key="extraoptions" type="string" defaultValue="" required="false" multiline="true">
+            <caption>Extra options</caption>
+            <category>Common</category>
+            <description>This property can be used to add additional options (in JSON format) to the widget </description>
+        </property>
     </properties>
 </widget>

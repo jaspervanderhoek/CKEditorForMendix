@@ -43,6 +43,7 @@ define([
         _imageReference: null,
         _setReference: false,
         _sourceKeyHandle: null,
+        extraoptions: null,
 
         ckeditorPlugins: [
             "divarea",
@@ -381,6 +382,16 @@ define([
 
             this._settings[this.id].config.extraAllowedContent = "*[data-*]";
 
+            
+			if (this.extraoptions !== '') {
+                try {
+                    this.objectmix(this._settings[this.id].config, dojo.fromJson(this.extraoptions));
+                }
+                catch( err ) {
+                    console.error(this.id + "._extraOptions, failed to add extra options to the configuration, options: " + this.extraoptions, err);
+                }
+            }
+            
             // Create a CKEditor from HTML element.
             this._editor = this._CKEditor.replace("html_editor_" + this.id, this._settings[this.id].config);
 
@@ -669,7 +680,48 @@ define([
                 this._editor.removeAllListeners();
                 this._editor.destroy();
             }
+        },
+        
+        objectmix : function(base, toadd) {
+          //MWE: because console.dir(dojo.mixin({ a : { b : 3 }}, { a : { c : 5 }})); -> { a : { c : 5 }}, but i want to keep b
+          if (toadd) {
+            /*console.log("in");
+            console.dir(base);
+            console.log("add");
+            console.dir(toadd);*/
+            for(var key in toadd) {
+                if ((key in base) &&
+                    ((dojo.isArray(toadd[key]) != dojo.isArray(base[key])) || 
+                     (dojo.isObject(toadd[key]) != dojo.isObject(base[key]))))
+                    throw "Cannot mix object properties, property '" + key + "' has different type in source and destination object";
+
+               //mix array
+              if (key in base && dojo.isArray(toadd[key])) { //base is checked in the check above
+                var src = toadd[key];
+                var target = base[key];
+                for(var i = 0; i < src.length; i++) {
+                    if (i < target.length) {
+                        if (dojo.isObject(src[i]) && dojo.isObject(target[i]))
+                            this.objectmix(target[i], src[i]);
+                        else
+                            target[i] = src[i];
+                    }
+                    else 
+                        target.push(src[i]);
+                }     
+              }
+              //mix object
+              else if (key in base && dojo.isObject(toadd[key])) //base is checked in the check above
+                this.objectmix(base[key], toadd[key]);
+              //mix primitive
+              else
+                base[key] = toadd[key];
+            }
+          }
+          /*console.log("out");
+          console.dir(base);*/
         }
+        
     });
 });
 
